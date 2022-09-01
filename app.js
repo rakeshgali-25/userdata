@@ -86,7 +86,7 @@ app.put("/change-password", async (request, response) => {
     response.send("Invalid user");
   } else {
     if (isPasswordMatched === true) {
-      if (checkedPassword) {
+      if (checkedPassword===false) {
         const newEncryptedPassword = await bcrypt.hash(
           request.body.newPassword,
           10
