@@ -1,5 +1,5 @@
 POST  http://localhost:3000/reqister
-content-type: application/json
+
 
 {
   "username": "adam_richard",
@@ -8,3 +8,5 @@ content-type: application/json
   "gender": "male",
   "location": "Detroit"
 }
+
+###

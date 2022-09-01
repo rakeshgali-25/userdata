@@ -8,6 +8,8 @@ const dbPath = path.join(__dirname, "userData.db");
 
 const app = express();
 
+app.use(express.json());
+
 const initializeDbAndServer = async (request, response) => {
   try {
     db = await open({
@@ -25,14 +27,6 @@ const initializeDbAndServer = async (request, response) => {
 
 initializeDbAndServer();
 
-const checkForPassword = (password) => {
-  if (password.length < 5) {
-    return false;
-  } else {
-    return true;
-  }
-};
-
 app.post("/register", async (request, response) => {
   const { username, name, password, gender, location } = request.body;
   const checkedPassword = password.length < 5 ? true : false;
@@ -45,7 +39,7 @@ app.post("/register", async (request, response) => {
       response.send("Password is too short");
     } else {
       const postQuery = `insert into user(username,name,password,gender,location)
-        values (${username},${name},${hashedPassword},${gender},${location});`;
+        values ('${username}','${name}','${hashedPassword}','${gender}','${location}');`;
       const dbResponse = await db.run(postQuery);
       response.status(200);
       response.send("User created successfully");
@@ -58,7 +52,7 @@ app.post("/register", async (request, response) => {
 
 app.post("/login", async (request, response) => {
   const { username, password } = request.body;
-  const userCheckQuery = `select * from user where username=${username};`;
+  const userCheckQuery = `select * from user where username='${username}';`;
   const userResponse = await db.get(userCheckQuery);
 
   if (userResponse === undefined) {
@@ -81,17 +75,17 @@ app.post("/login", async (request, response) => {
 
 app.put("/change-password", async (request, response) => {
   const { username, oldPassword, newPassword } = request.body;
-  const userCheckQuery = `select * from user where username=${username};`;
+  const userCheckQuery = `select * from user where username='${username}';`;
   const userResponse = await db.get(userCheckQuery);
   const isPasswordMatched = await bcrypt.compare(
-    password,
+    oldPassword,
     userResponse.password
   );
-  if (isPasswordMatched) {
-    const checkedPassword = password.length < 5 ? true : false;
+  const checkedPassword = newPassword.length < 5 ? true : false;
+  if (isPasswordMatched === true) {
     if (checkedPassword) {
       const newPassword = await bcrypt.hash(request.body.newPassword, 10);
-      const putQuery = `update user set password=${newPassword} where username=${username};`;
+      const putQuery = `update user set password='${newPassword}' where username='${username}';`;
       const update = await db.run(putQuery);
       response.status(200);
       response.send("Password updated");
